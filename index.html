@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO AI Project - Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f;
+            color: #e4e4e7;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #14b8a6, #06b6d4, #ec4899, #f97316);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            color: #ffffff;
+            opacity: 0.95;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #1f2937, #374151);
+            border: 1px solid #4b5563;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+        
+        .stat-card.red { border-top: 3px solid #ef4444; }
+        .stat-card.orange { border-top: 3px solid #f59e0b; }
+        .stat-card.blue { border-top: 3px solid #3b82f6; }
+        .stat-card.purple { border-top: 3px solid #8b5cf6; }
+        .stat-card.green { border-top: 3px solid #10b981; }
+        
+        .stat-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card.red .stat-value { color: #ef4444; }
+        .stat-card.orange .stat-value { color: #f59e0b; }
+        .stat-card.blue .stat-value { color: #3b82f6; }
+        .stat-card.purple .stat-value { color: #8b5cf6; }
+        .stat-card.green .stat-value { color: #10b981; }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+        
+        .controls {
+            background: linear-gradient(135deg, #1f2937, #111827);
+            border: 1px solid #374151;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            color: #f3f4f6;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        
+        .control-group select {
+            width: 100%;
+            padding: 10px 12px;
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            color: #f3f4f6;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .control-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .btn-accent {
+            background: #f59e0b;
+            color: #000;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+        
+        .view-tabs {
+            display: flex;
+            background: #1f2937;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 30px;
+            border: 1px solid #374151;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px 16px;
+            background: transparent;
+            color: #9ca3af;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .tab:hover:not(.active) {
+            color: #f3f4f6;
+            background: #374151;
+        }
+        
+        .main-content {
+            background: linear-gradient(135deg, #1f2937, #111827);
+            border: 1px solid #374151;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .gantt-container {
+            min-height: 600px;
+            border-radius: 12px;
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .task-card {
+            background: linear-gradient(135deg, #374151, #1f2937);
+            border: 1px solid #4b5563;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .task-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            border-radius: 12px 0 0 12px;
+        }
+        
+        .task-card.red::before { background: #ef4444; }
+        .task-card.orange::before { background: #f59e0b; }
+        .task-card.blue::before { background: #3b82f6; }
+        .task-card.purple::before { background: #8b5cf6; }
+        .task-card.green::before { background: #10b981; }
+        
+        .task-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .task-id {
+            background: #4b5563;
+            color: #f3f4f6;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 700;
+            float: right;
+        }
+        
+        .task-title {
+            font-weight: 600;
+            color: #f3f4f6;
+            font-size: 1.1em;
+            margin: 0 60px 15px 0;
+            line-height: 1.3;
+        }
+        
+        .task-badges {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-semantico { background: #10b981; color: #000; }
+        .badge-tecnico { background: #3b82f6; color: #fff; }
+        .badge-strategico { background: #f59e0b; color: #000; }
+        .badge-offsite { background: #ef4444; color: #fff; }
+        .badge-ispirazionale { background: #8b5cf6; color: #fff; }
+        
+        .badge-facile { background: #22c55e; color: #000; }
+        .badge-media { background: #f59e0b; color: #000; }
+        .badge-difficile { background: #ef4444; color: #fff; }
+        
+        .badge-alta { background: #ef4444; color: #fff; }
+        .badge-priority-media { background: #f59e0b; color: #000; }
+        .badge-bassa { background: #22c55e; color: #000; }
+        
+        .task-phase {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .phase-red { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .phase-orange { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .phase-blue { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .phase-purple { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+        .phase-green { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        
+        .task-description {
+            color: #9ca3af;
+            font-size: 0.9em;
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+        
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: #6b7280;
+            border-top: 1px solid #374151;
+            padding-top: 10px;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1f2937, #111827);
+            border: 1px solid #374151;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .modal h3 {
+            color: #f3f4f6;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 8px;
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px 20px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #9ca3af;
+        }
+        
+        .detail-value {
+            color: #f3f4f6;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .view-tabs {
+                flex-direction: column;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 SEO AI PROJECT</h1>
+            <p>Dashboard per la Gestione delle Attività</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card red">
+                <div class="stat-value" id="fase1Count">0</div>
+                <div class="stat-label">FASE 1 (POC)</div>
+            </div>
+            <div class="stat-card orange">
+                <div class="stat-value" id="fase2Count">0</div>
+                <div class="stat-label">FASE 2</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-value" id="fase3Count">0</div>
+                <div class="stat-label">FASE 3</div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-value" id="fase4Count">0</div>
+                <div class="stat-label">FASE 4</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-value" id="step2Count">0</div>
+                <div class="stat-label">STEP 2</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-grid">
+                <div class="control-group">
+                    <label>📋 Filtra per Fase</label>
+                    <select id="phaseFilter" onchange="applyFilters()">
+                        <option value="all">Tutte le Fasi</option>
+                        <option value="FASE 1">FASE 1 (POC)</option>
+                        <option value="FASE 2">FASE 2</option>
+                        <option value="FASE 3">FASE 3</option>
+                        <option value="FASE 4">FASE 4</option>
+                        <option value="STEP 2">STEP 2</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>🎯 Filtra per Tipo</label>
+                    <select id="typeFilter" onchange="applyFilters()">
+                        <option value="all">Tutti i Tipi</option>
+                        <option value="Semantico">Semantico</option>
+                        <option value="Tecnico">Tecnico</option>
+                        <option value="Strategico">Strategico</option>
+                        <option value="Off Site">Off Site</option>
+                        <option value="Ispirazionale">Ispirazionale</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>⚡ Complessità</label>
+                    <select id="complexityFilter" onchange="applyFilters()">
+                        <option value="all">Tutte</option>
+                        <option value="Facile">Facile</option>
+                        <option value="Media">Media</option>
+                        <option value="Difficile">Difficile</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>🔥 Priorità</label>
+                    <select id="priorityFilter" onchange="applyFilters()">
+                        <option value="all">Tutte</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Media">Media</option>
+                        <option value="Bassa">Bassa</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <button class="btn btn-primary" onclick="applyFilters()">🔍 Applica Filtri</button>
+                <button class="btn btn-secondary" onclick="resetFilters()">🔄 Reset</button>
+                <button class="btn btn-accent" onclick="exportData()">📥 Esporta CSV</button>
+            </div>
+        </div>
+
+        <div class="view-tabs">
+            <button class="tab active" onclick="switchView('gantt')">📊 Gantt per Fasi</button>
+            <button class="tab" onclick="switchView('cards')">🗂️ Vista Card</button>
+        </div>
+
+        <div class="main-content">
+            <div id="ganttView" class="view-content">
+                <div id="ganttChart" class="gantt-container"></div>
+            </div>
+
+            <div id="cardsView" class="view-content" style="display: none;">
+                <div id="cardsGrid" class="cards-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="taskModal" onclick="closeModal(event)">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const tasks = [
+            // **FASE 1 (POC) - Task che iniziano in Fase 1**
+            { id: 6, name: "Keywords research avanzata", type: "Semantico", phase: "FASE 1 (POC)", startPhase: "FASE 1 (POC)", endPhase: "FASE 1 (POC)", complexity: "Facile", priority: "Alta", target: "Tutti i player", description: "Individuare, analizzare e organizzare le keyword con il maggior potenziale SEO integrando dati di mercato con dati proprietari. BASE PER TUTTO.", dependencies: [] },
+            { id: 4, name: "Implementazione dati strutturati", type: "Tecnico", phase: "FASE 1 (POC)", startPhase: "FASE 1 (POC)", endPhase: "FASE 1 (POC)", complexity: "Facile", priority: "Alta", target: "Tutti i player", description: "Implementare e mantenere structured data (Schema.org in JSON-LD) per migliorare comprensione da parte dei motori di ricerca.", dependencies: [] },
+            { id: 7, name: "Alberatura SEO friendly", type: "Semantico", phase: "FASE 1 (POC)", startPhase: "FASE 1 (POC)", endPhase: "FASE 1 (POC)", complexity: "Media", priority: "Alta", target: "Tutti i player", description: "Tradurre la keyword research in una struttura informativa ottimizzata: clusterizzare query e intenti, proporre categorie.", dependencies: [6] },
+            { id: 8, name: "Definizione H1 e URL", type: "Semantico", phase: "FASE 1 (POC)", startPhase: "FASE 1 (POC)", endPhase: "FASE 1 (POC)", complexity: "Facile", priority: "Alta", target: "Tutti i player", description: "Creare per ogni pagina una coppia H1 + URL SEO-friendly, coerente con le keyword target.", dependencies: [6] },
+            { id: 9, name: "Metadatazione basata su Kw research", type: "Semantico", phase: "FASE 1 (POC)", startPhase: "FASE 1 (POC)", endPhase: "FASE 1 (POC)", complexity: "Facile", priority: "Alta", target: "Tutti i player", description: "Automatizzare la generazione di title & description su larga scala integrando keyword primarie e correlate.", dependencies: [6] },
+            { id: 10, name: "Naming e descrizioni prodotti", type: "Semantico", phase: "FASE 1 (POC)", startPhase: "FASE 1 (POC)", endPhase: "FASE 1 (POC)", complexity: "Facile", priority: "Alta", target: "Tutti i player", description: "Creazione di naming e descrizioni uniche integrando keyword target e long tail.", dependencies: [6] },
+            { id: 11, name: "Testi di categoria", type: "Semantico", phase: "FASE 1 (POC)", startPhase: "FASE 1 (POC)", endPhase: "FASE 1 (POC)", complexity: "Facile", priority: "Alta", target: "Tutti i player", description: "Automatizzare la generazione di testi di categoria coerenti con la keyword research.", dependencies: [6, 8] },
+            { id: 13, name: "Robots.txt checker & generator", type: "Tecnico", phase: "FASE 1-2", startPhase: "FASE 1 (POC)", endPhase: "FASE 2", complexity: "Facile", priority: "Alta", target: "Tutti i player", description: "Automatizzare l'analisi del file robots.txt, spiegare in linguaggio naturale le regole presenti.", dependencies: [] },
+            { id: 14, name: "Sitemap checker & generator", type: "Tecnico", phase: "FASE 1-2", startPhase: "FASE 1 (POC)", endPhase: "FASE 2", complexity: "Facile", priority: "Alta", target: "Tutti i player", description: "Automatizzare l'analisi delle sitemap per identificare URL mancanti, duplicati o non indicizzabili.", dependencies: [] },
+            { id: 15, name: "Canonical + Hreflang checker", type: "Tecnico", phase: "FASE 1-2", startPhase: "FASE 1 (POC)", endPhase: "FASE 2", complexity: "Facile", priority: "Alta", target: "Tutti i player", description: "Automatizzare l'analisi dei canonical e degli hreflang, rilevando incongruenze.", dependencies: [] },
+            { id: 16, name: "Meta robots checker massivo", type: "Tecnico", phase: "FASE 1-2", startPhase: "FASE 1 (POC)", endPhase: "FASE 2", complexity: "Facile", priority: "Alta", target: "Tutti i player", description: "Analisi di grandi volumi di pagine, identificare pattern anomali o conflittuali nei meta robots.", dependencies: [] },
+            { id: 18, name: "Clusterizzazione SEO delle ricerche", type: "Strategico", phase: "FASE 1 (POC)", startPhase: "FASE 1 (POC)", endPhase: "FASE 1 (POC)", complexity: "Facile", priority: "Alta", target: "Tutti i player", description: "Clusterizzazione semantica delle query brand e non brand, identificando pattern e intenti nascosti.", dependencies: [6] },
+            { id: 24, name: "Analisi CWV (Core Web Vitals)", type: "Tecnico", phase: "FASE 1-2", startPhase: "FASE 1 (POC)", endPhase: "FASE 2", complexity: "Facile", priority: "Alta", target: "Agency, Freelance", description: "Lettura e sintesi dei dati CWV da diverse fonti, spiegare in linguaggio naturale le problematiche.", dependencies: [] },
+            { id: 29, name: "Studio della stagionalità", type: "Strategico", phase: "FASE 1 (POC)", startPhase: "FASE 1 (POC)", endPhase: "FASE 1 (POC)", complexity: "Facile", priority: "Alta", target: "Tutti i player", description: "Raccolta e confronto dei dati multi-canale, riconoscere pattern stagionali e trend emergenti.", dependencies: [6] },
+            { id: 36, name: "Blog e PED", type: "Semantico", phase: "FASE 1 (POC)", startPhase: "FASE 1 (POC)", endPhase: "FASE 1 (POC)", complexity: "Facile", priority: "Alta", target: "Tutti i player", description: "Trasformazione di una keyword research in un piano editoriale strutturato.", dependencies: [6, 7] },
+
+            // **FASE 2 - Task che iniziano in Fase 2**
+            { id: 1, name: "Domande e doc per Kick Off", type: "Semantico", phase: "FASE 2", startPhase: "FASE 2", endPhase: "FASE 2", complexity: "Facile", priority: "Media", target: "Tutti i player", description: "Facilitare e standardizzare la fase iniziale di onboarding di un progetto SEO.", dependencies: [] },
+            { id: 12, name: "Analisi gerarchia tag di heading", type: "Tecnico", phase: "FASE 2-3", startPhase: "FASE 2", endPhase: "FASE 3", complexity: "Media", priority: "Media", target: "Agency, Freelance", description: "Analisi della gerarchia dei heading a partire da HTML o screenshot/grafiche.", dependencies: [] },
+            { id: 20, name: "Analisi Hero Products", type: "Strategico", phase: "FASE 2", startPhase: "FASE 2", endPhase: "FASE 2", complexity: "Facile", priority: "Media", target: "Agency, Freelance", description: "Dati da GA4, SEMrush e GSC, incrociando performance organiche.", dependencies: [] },
+            { id: 21, name: "Analisi Competitors dettagliata", type: "Strategico", phase: "FASE 2", startPhase: "FASE 2", endPhase: "FASE 2", complexity: "Media", priority: "Media", target: "Tutti i player", description: "Raccolta e sintesi dei dati da tool SEO e SERP.", dependencies: [6] },
+            { id: 22, name: "Analisi mercati basata sulle ricerche", type: "Strategico", phase: "FASE 2-3", startPhase: "FASE 2", endPhase: "FASE 3", complexity: "Media", priority: "Media", target: "Tutti i player", description: "Automatizzare la raccolta e clusterizzazione delle query per paese, lingua, settore o intento.", dependencies: [6] },
+            { id: 23, name: "Analisi search intent con sentiment", type: "Strategico", phase: "FASE 2-3", startPhase: "FASE 2", endPhase: "FASE 3", complexity: "Media", priority: "Bassa", target: "Agency", description: "Analisi del sentiment per paese/lingua, rilevare sfumature culturali e polarità emotive.", dependencies: [6] },
+            { id: 26, name: "Link Building analisi", type: "Off Site", phase: "FASE 2-4", startPhase: "FASE 2", endPhase: "FASE 4", complexity: "Media", priority: "Media", target: "Agency, Freelance", description: "Sintesi dei dati da tool di backlink, classificare i link per qualità/rilevanza/anchor text.", dependencies: [] },
+            { id: 31, name: "Mappa delle pagine da creare", type: "Strategico", phase: "FASE 2", startPhase: "FASE 2", endPhase: "FASE 2", complexity: "Media", priority: "Media", target: "Freelance, Agency", description: "Gap rispetto ai competitor, proporre una mappa strutturata di nuove pagine.", dependencies: [6, 7] },
+            { id: 32, name: "SEO x YouTube", type: "Off Site", phase: "FASE 2-3", startPhase: "FASE 2", endPhase: "FASE 3", complexity: "Facile", priority: "Media", target: "Tutti i player", description: "Automatizzare la scrittura di titoli, descrizioni, script/abstract.", dependencies: [] },
+            { id: 34, name: "Supporto per Internal Linking", type: "Semantico", phase: "FASE 2", startPhase: "FASE 2", endPhase: "FASE 2", complexity: "Facile", priority: "Media", target: "Tutti i player", description: "Analisi dei link interni, individuare pagine orfane o con linking debole.", dependencies: [6, 7] },
+            { id: 38, name: "Supporter GSC", type: "Strategico", phase: "FASE 2-3", startPhase: "FASE 2", endPhase: "FASE 3", complexity: "Facile", priority: "Media", target: "Tutti i player", description: "Trasformare automaticamente ogni segnalazione GSC in una spiegazione chiara.", dependencies: [] },
+            { id: 41, name: "Analisi predittiva (forecast) SEO", type: "Ispirazionale", phase: "FASE 2", startPhase: "FASE 2", endPhase: "FASE 2", complexity: "Media", priority: "Alta", target: "Agency, Freelance", description: "Fusione dei dataset, applicare modelli predittivi su volumi di ricerca.", dependencies: [29] },
+            { id: 42, name: "Analisi cannibalizzazione", type: "Semantico", phase: "FASE 2-3", startPhase: "FASE 2", endPhase: "FASE 3", complexity: "Facile", priority: "Alta", target: "Agency, Freelance", description: "Studio delle query da GSC e dei ranking da tool SEO, rilevare pattern di sovrapposizione.", dependencies: [6] },
+
+            // **FASE 3 - Task che iniziano in Fase 3**
+            { id: 5, name: "Migrazione SEO", type: "Tecnico", phase: "FASE 3-4", startPhase: "FASE 3", endPhase: "FASE 4", complexity: "Difficile", priority: "Alta", target: "Tutti i player", description: "Garantire che durante una migrazione non si perda traffico organico né posizionamenti.", dependencies: [] },
+            { id: 19, name: "Analisi SEO con Focus AI", type: "Strategico", phase: "FASE 3-4", startPhase: "FASE 3", endPhase: "FASE 4", complexity: "Difficile", priority: "Media", target: "Agency", description: "Ricerca e raccolta delle menzioni del brand nelle risposte AI.", dependencies: [] },
+            { id: 30, name: "Suggerimenti basati su trends", type: "Ispirazionale", phase: "FASE 3-4", startPhase: "FASE 3", endPhase: "FASE 4", complexity: "Media", priority: "Bassa", target: "Tutti i player", description: "Analisi multi-piattaforma dei trend, estrarre segnali precoci.", dependencies: [] },
+            { id: 39, name: "Strategia saldi e black friday", type: "Ispirazionale", phase: "FASE 3-4", startPhase: "FASE 3", endPhase: "FASE 4", complexity: "Facile", priority: "Bassa", target: "Tutti i player", description: "Automatizzare la generazione del piano stagionale.", dependencies: [29, 7] },
+            { id: 45, name: "SEO per Amazon", type: "Off Site", phase: "FASE 3-4", startPhase: "FASE 3", endPhase: "FASE 4", complexity: "Facile", priority: "Media", target: "Tutti i player", description: "Ottimizzazione tramite AI per la SEO su Amazon.", dependencies: [] },
+
+            // **FASE 4 - Task che iniziano in Fase 4**
+            { id: 2, name: "Creazione doc di mercati e listini", type: "Tecnico", phase: "FASE 4", startPhase: "FASE 4", endPhase: "FASE 4", complexity: "Difficile", priority: "Media", target: "Agency", description: "Fornire in modo strutturato una panoramica di mercati, listini e prezzi.", dependencies: [] },
+            { id: 17, name: "Piano Operativo per la gestione SEO", type: "Strategico", phase: "FASE 4", startPhase: "FASE 4", endPhase: "FASE 4", complexity: "Media", priority: "Bassa", target: "Tutti i player", description: "Creazione del piano operativo traducendo audit e keyword research in task concreti.", dependencies: [] },
+            { id: 25, name: "Analisi SEO Preliminare", type: "Strategico", phase: "FASE 4-STEP 2", startPhase: "FASE 4", endPhase: "STEP 2 (secondo anno)", complexity: "Facile", priority: "Bassa", target: "Agency, Freelance", description: "Automatizzare la raccolta dei dati chiave per convincere il prospect.", dependencies: [] },
+            { id: 27, name: "Audit SEO", type: "Strategico", phase: "FASE 4-STEP 2", startPhase: "FASE 4", endPhase: "STEP 2 (secondo anno)", complexity: "Facile", priority: "Bassa", target: "Agency, Freelance", description: "Raccogliere e analizzare i dati da fonti multiple, sintetizzare i risultati.", dependencies: [] },
+            { id: 28, name: "Creazione di una timeline (GANTT)", type: "Strategico", phase: "FASE 4-STEP 2", startPhase: "FASE 4", endPhase: "STEP 2 (secondo anno)", complexity: "Facile", priority: "Media", target: "Tutti i player", description: "Automatizzare la traduzione del piano SEO in una timeline GANTT.", dependencies: [] },
+            { id: 33, name: "Analisi miniature immagini Google", type: "Strategico", phase: "FASE 4", startPhase: "FASE 4", endPhase: "FASE 4", complexity: "Facile", priority: "Bassa", target: "Agency", description: "Fornire guide e aumentare il controllo delle miniature presenti in SERP.", dependencies: [] },
+            { id: 37, name: "Configuratore AI embeddabile", type: "Ispirazionale", phase: "FASE 4-STEP 2", startPhase: "FASE 4", endPhase: "STEP 2 (secondo anno)", complexity: "Difficile", priority: "Media", target: "Agency", description: "Un configuratore creato tramite AI che si possa embeddare in pagine ispirazionali strategiche.", dependencies: [] },
+            { id: 40, name: "Reportistica avanzata automatica", type: "Strategico", phase: "FASE 4-STEP 2", startPhase: "FASE 4", endPhase: "STEP 2 (secondo anno)", complexity: "Facile", priority: "Bassa", target: "Tutti i player", description: "Raccolta e sintesi dei dati da fonti diverse, trasformarli in report chiari.", dependencies: [] },
+            { id: 43, name: "Log file analisi", type: "Tecnico", phase: "FASE 4-STEP 2", startPhase: "FASE 4", endPhase: "STEP 2 (secondo anno)", complexity: "Difficile", priority: "Bassa", target: "Agency", description: "Estrarre insight chiave, tradurre i dati tecnici in spiegazioni chiare.", dependencies: [] },
+            { id: 44, name: "Analisi recensioni online", type: "Ispirazionale", phase: "FASE 4", startPhase: "FASE 4", endPhase: "FASE 4", complexity: "Facile", priority: "Media", target: "Tutti i player", description: "Analisi recensioni con sentiment e FAQ per rispondere ai più comuni dubbi dei clienti.", dependencies: [] },
+
+            // **TBD - Task da definire**
+            { id: 35, name: "Capire per Google My Business", type: "Strategico", phase: "TBD", startPhase: "TBD", endPhase: "TBD", complexity: "TBD", priority: "TBD", target: "TBD", description: "Studio delle opportunità di ottimizzazione per Google My Business.", dependencies: [] }
+        ];
+
+        let filteredTasks = tasks;
+        let currentView = 'gantt';
+
+        function getPhaseColor(phase) {
+            if (phase.includes('FASE 1')) return '#ef4444';
+            if (phase.includes('FASE 2')) return '#f59e0b';
+            if (phase.includes('FASE 3')) return '#3b82f6';
+            if (phase.includes('FASE 4')) return '#8b5cf6';
+            if (phase.includes('STEP 2')) return '#10b981';
+            return '#6b7280';
+        }
+
+        function getPhaseClass(phase) {
+            if (phase.includes('FASE 1')) return 'red';
+            if (phase.includes('FASE 2')) return 'orange';
+            if (phase.includes('FASE 3')) return 'blue';
+            if (phase.includes('FASE 4')) return 'purple';
+            if (phase.includes('STEP 2')) return 'green';
+            return 'gray';
+        }
+
+        function getPhasePosition(phaseString) {
+            if (phaseString.includes('FASE 1') || phaseString === 'FASE 1 (POC)') return 0;
+            if (phaseString.includes('FASE 2')) return 1;
+            if (phaseString.includes('FASE 3')) return 2;
+            if (phaseString.includes('FASE 4')) return 3;
+            if (phaseString.includes('STEP 2')) return 4;
+            if (phaseString === 'TBD') return 5;
+            return 0;
+        }
+
+        function switchView(viewName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.view-content').forEach(view => view.style.display = 'none');
+            document.getElementById(viewName + 'View').style.display = 'block';
+            
+            currentView = viewName;
+            
+            if (viewName === 'gantt') {
+                createGanttChart();
+            } else if (viewName === 'cards') {
+                createCardsView();
+            }
+        }
+
+        function createGanttChart() {
+            const traces = [];
+            
+            // Ordina i task per startPhase e poi per ID per avere un ordine logico
+            const sortedTasks = [...filteredTasks].sort((a, b) => {
+                const phaseOrder = {
+                    'FASE 1 (POC)': 1,
+                    'FASE 2': 2, 
+                    'FASE 3': 3,
+                    'FASE 4': 4,
+                    'STEP 2 (secondo anno)': 5,
+                    'TBD': 6
+                };
+                
+                const aPhase = phaseOrder[a.startPhase] || 0;
+                const bPhase = phaseOrder[b.startPhase] || 0;
+                
+                if (aPhase !== bPhase) {
+                    return aPhase - bPhase;
+                }
+                return a.id - b.id;
+            });
+            
+            // Inverti l'ordine per far apparire FASE 1 in alto nel grafico
+            const reversedTasks = sortedTasks.reverse();
+            
+            reversedTasks.forEach((task, index) => {
+                const startPos = getPhasePosition(task.startPhase);
+                const endPos = getPhasePosition(task.endPhase) + 0.8;
+                
+                traces.push({
+                    x: [startPos, endPos],
+                    y: [`#${task.id} - ${task.name}`, `#${task.id} - ${task.name}`],
+                    mode: 'lines+markers',
+                    type: 'scatter',
+                    line: {
+                        color: getPhaseColor(task.startPhase),
+                        width: 8
+                    },
+                    marker: {
+                        color: getPhaseColor(task.startPhase),
+                        size: 10,
+                        symbol: 'square'
+                    },
+                    name: task.phase,
+                    hovertemplate: 
+                        '<b>%{y}</b><br>' +
+                        'Fase: ' + task.phase + '<br>' +
+                        'Tipo: ' + task.type + '<br>' +
+                        'Complessità: ' + task.complexity + '<br>' +
+                        'Priorità: ' + task.priority + '<br>' +
+                        'Periodo: ' + task.startPhase + ' → ' + task.endPhase + '<br>' +
+                        'Dipendenze: ' + (task.dependencies.length > 0 ? task.dependencies.map(d => `#${d}`).join(', ') : 'Nessuna') + '<br>' +
+                        '<extra></extra>',
+                    customdata: [task],
+                    showlegend: false
+                });
+            });
+
+            const layout = {
+                title: {
+                    text: 'Gantt Chart per Fasi - Progetto SEO AI',
+                    font: { size: 18, color: '#f3f4f6' }
+                },
+                xaxis: {
+                    title: 'Fasi del Progetto',
+                    tickvals: [0, 1, 2, 3, 4, 5],
+                    ticktext: ['FASE 1<br>(POC)', 'FASE 2', 'FASE 3', 'FASE 4', 'STEP 2<br>(Anno 2)', 'TBD'],
+                    gridcolor: '#374151',
+                    color: '#9ca3af',
+                    range: [-0.2, 5.5]
+                },
+                yaxis: {
+                    title: 'Attività',
+                    automargin: true,
+                    tickfont: { size: 10, color: '#9ca3af' },
+                    gridcolor: '#374151'
+                },
+                height: Math.max(800, filteredTasks.length * 20),
+                margin: { l: 280, r: 30, t: 70, b: 70 },
+                hovermode: 'closest',
+                showlegend: false,
+                plot_bgcolor: '#111827',
+                paper_bgcolor: '#111827',
+                font: { color: '#f3f4f6' }
+            };
+
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d']
+            };
+
+            Plotly.newPlot('ganttChart', traces, layout, config);
+            
+            document.getElementById('ganttChart').on('plotly_click', function(data) {
+                if (data.points && data.points[0] && data.points[0].customdata) {
+                    showTaskModal(data.points[0].customdata[0]);
+                }
+            });
+        }
+
+        function createCardsView() {
+            const container = document.getElementById('cardsGrid');
+            container.innerHTML = '';
+            
+            filteredTasks.forEach(task => {
+                const card = document.createElement('div');
+                card.className = `task-card ${getPhaseClass(task.phase)}`;
+                card.onclick = () => showTaskModal(task);
+                
+                const typeClass = `badge-${task.type.toLowerCase().replace(' ', '').replace('site', 'site')}`;
+                const complexityClass = `badge-${task.complexity.toLowerCase()}`;
+                const priorityClass = `badge-${task.priority.toLowerCase()}`;
+                const phaseClass = `phase-${getPhaseClass(task.phase)}`;
+                
+                card.innerHTML = `
+                    <div class="task-id">#${task.id}</div>
+                    <div class="task-title">${task.name}</div>
+                    
+                    <div class="task-phase ${phaseClass}">${task.phase}</div>
+                    
+                    <div class="task-badges">
+                        <span class="badge ${typeClass}">${task.type}</span>
+                        <span class="badge ${complexityClass}">${task.complexity}</span>
+                        <span class="badge ${priorityClass}">${task.priority}</span>
+                    </div>
+                    
+                    <div class="task-description">${task.description.substring(0, 120)}...</div>
+                    
+                    <div class="task-meta">
+                        <span>🎯 ${task.target}</span>
+                        <span>⏱️ ${task.duration} giorni</span>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        function showTaskModal(task) {
+            const dependencies = task.dependencies.length > 0 
+                ? task.dependencies.map(depId => `#${depId}`).join(', ')
+                : 'Nessuna dipendenza';
+
+            const content = `
+                <h3>📋 ${task.name}</h3>
+                <div class="detail-grid">
+                    <div class="detail-label">ID Task:</div>
+                    <div class="detail-value">#${task.id}</div>
+                    
+                    <div class="detail-label">Tipo:</div>
+                    <div class="detail-value">${task.type}</div>
+                    
+                    <div class="detail-label">Fase:</div>
+                    <div class="detail-value" style="color: ${getPhaseColor(task.phase)}; font-weight: bold;">${task.phase}</div>
+                    
+                    <div class="detail-label">Complessità:</div>
+                    <div class="detail-value">${task.complexity}</div>
+                    
+                    <div class="detail-label">Priorità:</div>
+                    <div class="detail-value">${task.priority}</div>
+                    
+                    <div class="detail-label">Target:</div>
+                    <div class="detail-value">${task.target}</div>
+                    
+                    <div class="detail-label">Dipendenze:</div>
+                    <div class="detail-value" style="font-weight: bold; color: #f59e0b;">${dependencies}</div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #f3f4f6; margin-bottom: 10px;">📝 Descrizione</h4>
+                    <p style="color: #9ca3af; line-height: 1.5;">${task.description}</p>
+                </div>
+            `;
+            
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('taskModal').style.display = 'flex';
+        }
+
+        function closeModal(event) {
+            if (!event || event.target === document.getElementById('taskModal')) {
+                document.getElementById('taskModal').style.display = 'none';
+            }
+        }
+
+        function applyFilters() {
+            const phaseFilter = document.getElementById('phaseFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const complexityFilter = document.getElementById('complexityFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+
+            filteredTasks = tasks.filter(task => {
+                const matchesPhase = phaseFilter === 'all' || task.phase.includes(phaseFilter);
+                const matchesType = typeFilter === 'all' || task.type === typeFilter;
+                const matchesComplexity = complexityFilter === 'all' || task.complexity === complexityFilter;
+                const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
+                
+                return matchesPhase && matchesType && matchesComplexity && matchesPriority;
+            });
+
+            updateStats();
+            
+            if (currentView === 'gantt') {
+                createGanttChart();
+            } else {
+                createCardsView();
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('phaseFilter').value = 'all';
+            document.getElementById('typeFilter').value = 'all';
+            document.getElementById('complexityFilter').value = 'all';
+            document.getElementById('priorityFilter').value = 'all';
+            
+            filteredTasks = tasks;
+            updateStats();
+            
+            if (currentView === 'gantt') {
+                createGanttChart();
+            } else {
+                createCardsView();
+            }
+        }
+
+        function updateStats() {
+            const phaseCounts = {
+                'FASE 1 (POC)': 0,
+                'FASE 2': 0,
+                'FASE 3': 0,
+                'FASE 4': 0,
+                'STEP 2 (secondo anno)': 0
+            };
+
+            filteredTasks.forEach(task => {
+                // Conta in base alla startPhase per evitare doppi conteggi
+                if (task.startPhase.includes('FASE 1')) phaseCounts['FASE 1 (POC)']++;
+                else if (task.startPhase.includes('FASE 2')) phaseCounts['FASE 2']++;
+                else if (task.startPhase.includes('FASE 3')) phaseCounts['FASE 3']++;
+                else if (task.startPhase.includes('FASE 4')) phaseCounts['FASE 4']++;
+                else if (task.startPhase.includes('STEP 2')) phaseCounts['STEP 2 (secondo anno)']++;
+            });
+
+            document.getElementById('fase1Count').textContent = phaseCounts['FASE 1 (POC)'];
+            document.getElementById('fase2Count').textContent = phaseCounts['FASE 2'];
+            document.getElementById('fase3Count').textContent = phaseCounts['FASE 3'];
+            document.getElementById('fase4Count').textContent = phaseCounts['FASE 4'];
+            document.getElementById('step2Count').textContent = phaseCounts['STEP 2 (secondo anno)'];
+        }
+
+        function exportData() {
+            const headers = ['ID', 'Nome', 'Tipo', 'Fase', 'Complessità', 'Priorità', 'Target', 'Durata', 'Descrizione'];
+            const csvContent = [
+                headers.join(','),
+                ...filteredTasks.map(task => [
+                    task.id,
+                    `"${task.name}"`,
+                    task.type,
+                    `"${task.phase}"`,
+                    task.complexity,
+                    task.priority,
+                    `"${task.target}"`,
+                    task.duration,
+                    `"${task.description.replace(/"/g, '""')}"`
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'seo_project_tasks.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            createGanttChart();
+        });
+    </script>
+</body>
+</html>
